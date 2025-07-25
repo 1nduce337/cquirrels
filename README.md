@@ -1,2 +1,3 @@
 # cquirrels
-very funny project
+very funny project about birds
+
