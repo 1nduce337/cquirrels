@@ -4,6 +4,13 @@ import random
 
 app=Ursina(fullscreen=False)
 
+behindRot=(90,0,0) #y=-1.5
+upRot=(0,0,0) #y=1.5
+downRot=(180,0,0) #z=1.5
+frontRot=(-90,0,0) #z=-1.5
+rightRot=(0,0,90) #x=1.5
+leftRot=(0,0,-90) #x=-1.5
+
 class cubeSide:
     def __init__(self,rot,fix,fval): #fix is the 'locked value' for that face; fval is the value at which it was locked at. e.g. fix=y fval=5 means this face has y fixed at 5
         for i in range (-1,2):
@@ -33,7 +40,7 @@ class cubeSide:
                         color=color.rgb(random.randint(0,255),random.randint(0,255),random.randint(0,255))
                     )
     
-cubeSide((-90,0,0),'z',-1.5)
+cubeSide(frontRot,'z',-1.5)
 
 
 EditorCamera()
