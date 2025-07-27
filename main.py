@@ -1,13 +1,14 @@
 from ursina import *
 import random
 
+colorList=[color.white, color.red, color.blue, color.orange, color.green, color.yellow]
 
 app=Ursina(fullscreen=False)
 
-behindRot=(90,0,0) #y=-1.5
-upRot=(0,0,0) #y=1.5
-downRot=(180,0,0) #z=1.5
 frontRot=(-90,0,0) #z=-1.5
+behindRot=(90,0,0) #z=1.5
+upRot=(0,0,0) #y=1.5
+downRot=(180,0,0) #y=-1.5 
 rightRot=(0,0,90) #x=1.5
 leftRot=(0,0,-90) #x=-1.5
 
@@ -21,7 +22,7 @@ class cubeSide:
                         scale=1,
                         rotation=rot,
                         position=(i,fval,j),
-                        color=color.rgb(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                        color=colorList[random.randint(0,5)]
                     )
                 elif(fix=='x'):
                     thing=Entity(
@@ -29,7 +30,7 @@ class cubeSide:
                         scale=1,
                         rotation=rot,
                         position=(fval,i,j),
-                        color=color.rgb(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                        color=colorList[random.randint(0,5)]
                     )
                 elif(fix=='z'):
                     thing=Entity(
@@ -37,10 +38,15 @@ class cubeSide:
                         scale=1,
                         rotation=rot,
                         position=(i,j,fval),
-                        color=color.rgb(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                        color=colorList[random.randint(0,5)]
                     )
     
 cubeSide(frontRot,'z',-1.5)
+cubeSide(behindRot,'z',1.5)
+cubeSide(upRot,'y',1.5)
+cubeSide(downRot,'y',-1.5)
+cubeSide(rightRot,'x',1.5)
+cubeSide(leftRot,'x',-1.5)
 
 
 EditorCamera()
