@@ -1,7 +1,10 @@
 from ursina import *
 import random
 
+colorListNumRemaining=[9,9,9,9,9,9]
 colorList=[color.white, color.red, color.blue, color.orange, color.green, color.yellow]
+cubeSides = {}
+cubePlane = {}
 
 app=Ursina(fullscreen=False)
 
@@ -17,30 +20,55 @@ class cubeSide:
         for i in range (-1,2):
             for j in range (-1,2):
                 if(fix=='y'):
+                    color = colorList[random.randint(0,5)]
+                    while colorListNumRemaining[colorList.index(color)] <= 0:
+                        color = colorList[random.randint(0,5)]
+                    colorListNumRemaining[colorList.index(color)] -= 1
+                    #faceColorOrder[f"side{i}{j}"]
+                    cubeSides[(i,fval,j)] = color
                     thing=Entity(
                         model='plane',
                         scale=1,
                         rotation=rot,
                         position=(i,fval,j),
-                        color=colorList[random.randint(0,5)]
+                        color=color
                     )
+
+                    faceColor = [0,1,2,3,4,5,6,7,8,9]
+                    # if fval == 1.5:
+                        # faceColor
+
+
+                        
                 elif(fix=='x'):
+                    color = colorList[random.randint(0,5)]
+                    while colorListNumRemaining[colorList.index(color)] <= 0:
+                        color = colorList[random.randint(0,5)]
+                    colorListNumRemaining[colorList.index(color)] -= 1
+                    cubeSides[(fval,i,j)] = color
                     thing=Entity(
                         model='plane',
                         scale=1,
                         rotation=rot,
                         position=(fval,i,j),
-                        color=colorList[random.randint(0,5)]
+                        color=color
                     )
+                    
                 elif(fix=='z'):
+                    color = colorList[random.randint(0,5)]
+                    while colorListNumRemaining[colorList.index(color)] <= 0:
+                        color = colorList[random.randint(0,5)]
+                    colorListNumRemaining[colorList.index(color)] -= 1
+                    cubeSides[(j,i,fval)] = color
+
                     thing=Entity(
                         model='plane',
                         scale=1,
                         rotation=rot,
-                        position=(i,j,fval),
-                        color=colorList[random.randint(0,5)]
-                    )
-    
+                        position=(j,i,fval),
+                        color=color)
+                    
+
 cubeSide(frontRot,'z',-1.5)
 cubeSide(behindRot,'z',1.5)
 cubeSide(upRot,'y',1.5)
@@ -48,6 +76,10 @@ cubeSide(downRot,'y',-1.5)
 cubeSide(rightRot,'x',1.5)
 cubeSide(leftRot,'x',-1.5)
 
-
+for tpl in cubeSides: 
+    print(tpl)
+    # if tpl[0] == 1:
+        # print (cubeSides[tpl])
+    #cubePlane[tpl]
 EditorCamera()
 app.run()
