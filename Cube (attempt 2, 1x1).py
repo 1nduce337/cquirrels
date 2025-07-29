@@ -1,7 +1,5 @@
 from ursina import *
 
-colorListNumRemaining=[9,9,9,9,9,9]
-
 app=Ursina(fullscreen=False)
 
 d =.51 #distance from the parent
