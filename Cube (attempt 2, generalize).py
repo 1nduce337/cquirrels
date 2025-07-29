@@ -7,6 +7,9 @@ cubes = {}
 directions = ['dir1', 'dir2']
 axis = ['x','y','z']
 values = [-1,0,1]
+Sky (
+    color = color.blue
+)
 rotatePoint = Entity(model='cube', scale=1, position=(0,0,0))
 rotatePoint.isRotating = False
 rotateDuration = .4
