@@ -14,7 +14,7 @@ downRot=(180,0,0) #y=-1.5
 rightRot=(0,0,90) #x=1.5
 leftRot=(0,0,-90) #x=-1.5
 
-center = Entity
+
 class cubeSide:
     def __init__(self,rot,fix,fval): #fix is the 'locked value' for that face; fval is the value at which it was locked at. e.g. fix=y fval=5 means this face has y fixed at 5
         self.sides = []

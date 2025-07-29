@@ -8,6 +8,7 @@ directions = ['dir1', 'dir2']
 axis = ['x','y','z']
 values = [-1,0,1]
 rotatePoint = Entity(model='cube', scale=1, position=(0,0,0))
+rotatePoint.isRotating = False
 rotateDuration = .4
 moveInterval = rotateDuration +.1
 for a in range(-1,2):
@@ -84,45 +85,51 @@ for c in cubes.values():
     c.combine()
 
 def rotateCube(direction, axis, point):
-    for i in cubes.values():
-        if axis == 'x':
-            if i.x == point:
-                i.parent = rotatePoint
-        if axis == 'y':
-            if i.y == point:
-                i.parent = rotatePoint
-        if axis == 'z':
-            if i.z == point:
-                i.parent = rotatePoint
-    if direction.lower() == 'dir1':
-        if axis == 'x':
-            rotatePoint.animate('rotation_x',rotatePoint.rotation_x + 90, duration = rotateDuration)
-        if axis == 'y':
-            rotatePoint.animate('rotation_y',rotatePoint.rotation_y + 90, duration = rotateDuration)
-        if axis == 'z':
-            rotatePoint.animate('rotation_z',rotatePoint.rotation_z + 90, duration = rotateDuration)
-    if direction.lower() == 'dir2':
-        if axis == 'x':
-            rotatePoint.animate('rotation_x',rotatePoint.rotation_x - 90, duration = rotateDuration)
-        if axis == 'y':
-            rotatePoint.animate('rotation_y',rotatePoint.rotation_y - 90, duration = rotateDuration)
-        if axis == 'z':
-            rotatePoint.animate('rotation_z',rotatePoint.rotation_z - 90, duration = rotateDuration)
+    if rotatePoint.isRotating == False:
+        rotatePoint.isRotating = True
+        for i in cubes.values():
+            if axis == 'x':
+                if i.x == point:
+                        i.parent = rotatePoint
+            if axis == 'y':
+                    if i.y == point:
+                        i.parent = rotatePoint
+            if axis == 'z':
+                    if i.z == point:
+                        i.parent = rotatePoint
+            if direction.lower() == 'dir1':
+                if axis == 'x':
+                    rotatePoint.animate('rotation_x',rotatePoint.rotation_x + 90, duration = rotateDuration)
+                if axis == 'y':
+                    rotatePoint.animate('rotation_y',rotatePoint.rotation_y + 90, duration = rotateDuration)
+                if axis == 'z':
+                    rotatePoint.animate('rotation_z',rotatePoint.rotation_z + 90, duration = rotateDuration)
+            if direction.lower() == 'dir2':
+                if axis == 'x':
+                    rotatePoint.animate('rotation_x',rotatePoint.rotation_x - 90, duration = rotateDuration)
+                if axis == 'y':
+                    rotatePoint.animate('rotation_y',rotatePoint.rotation_y - 90, duration = rotateDuration)
+                if axis == 'z':
+                    rotatePoint.animate('rotation_z',rotatePoint.rotation_z - 90, duration = rotateDuration)
+        rotatePoint.isRotating = False
 def unparentCubes():
-    for cube in cubes.values():
-        if cube.parent == rotatePoint:
-            cube.world_parent = scene
-            cube.position = Vec3(round(cube.x), round(cube.y), round(cube.z))
-            cube.rotation = Vec3(round(cube.rotation_x / 90) * 90, round(cube.rotation_y / 90) * 90, round(cube.rotation_z / 90) * 90)
-    rotatePoint.rotation = (0, 0, 0)
+    if rotatePoint.isRotating == False:
+        rotatePoint.isRotating = True
+        for cube in cubes.values():
+            if cube.parent == rotatePoint:
+                cube.world_parent = scene
+                cube.position = Vec3(round(cube.x), round(cube.y), round(cube.z))
+                cube.rotation = Vec3(round(cube.rotation_x / 90) * 90, round(cube.rotation_y / 90) * 90, round(cube.rotation_z / 90) * 90)
+        rotatePoint.rotation = (0, 0, 0)
+        rotatePoint.isRotating = False
 def scramble():
     rotateCube(random.choice(directions), random.choice(axis), random.choice(values))
-scramble_sequence = Sequence(Func(scramble), Wait(.5), Func(unparentCubes), Wait(.5), loop=True)
+scramble_sequence = Sequence(Func(scramble), Wait(.5), Func(unparentCubes), Wait(.5),loop=True)
 def input(key):
-    if key == 'r':
+    if key == 'r' and rotatePoint.isRotating == False:
         scramble_sequence.start()
     if key == 'p':
-        scramble_sequence.pause()
+        scramble_sequence.finish()
 EditorCamera()
 # to un parent do world_parent = scene
 app.run()
