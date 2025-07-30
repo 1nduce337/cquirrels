@@ -21,14 +21,25 @@ Sky(texture = skybox_image, shader=None)
 
 
 window.editor_ui.disable()
-
+background_music = Audio('good_music.mp3', loop=True, autoplay=True, volume=0.5)
 my_text = Text(text="CQUIRRELS CUBE!", scale=3, origin=(0.7, -5.5))
 
 
 my_text = Text(text="Space Bar+LMB: Y axis rotation", scale=1, origin=(1.55, -14))
 my_text = Text(text="Z+LMB: Z axis rotation", scale=1, origin=(2.34, -13))
 my_text = Text(text="Shift+any previous rotation binds: spin in another direction", scale=1, origin=(.576, -12))
-
+button = Button(scale=(.2,.1), text='Toggle Shuffle',origin=(3.2,-2))
+button.text_entity.world_scale = 15
+shuffleOn=False
+def action():
+    global shuffleOn
+    if not shuffleOn and not isRotating:
+        scramble_sequence.start()
+        shuffleOn=True
+    elif shuffleOn and not isRotating:
+        scramble_sequence.pause()
+        shuffleOn=False
+button.on_click=action
 
 for a in range(-1, 2):
     for b in range(-1, 2):
@@ -300,7 +311,8 @@ def input(key):
     if key == 'left mouse down' and not heldSpace and not isRotating and not HeldZ:
         # print('pressed mouse')
         # print(mouse)
-        if mouse.hovered_entity:
+        print(mouse.hovered_entity)
+        if mouse.hovered_entity!=button:
             mhe_y = mouse.hovered_entity.y  # y is horizontal
             scramble_sequence.pause()
             if not heldShift:
@@ -315,7 +327,7 @@ def input(key):
                 invoke(setIsRotating, delay=.6)
     if heldSpace and key == 'left mouse down' and not isRotating and not HeldZ:
         # print('spacebar')
-        if mouse.hovered_entity:
+        if mouse.hovered_entity!=button:
             mhe_x = mouse.hovered_entity.x
             # print(mhe_x)  # x is horizontal
             if key == 'left mouse down' and not heldShift and not isRotating:
@@ -332,7 +344,7 @@ def input(key):
     if key == 'left mouse down' and not heldSpace and not isRotating and HeldZ:
         # print('pressed mouse')
         # print(mouse)
-        if mouse.hovered_entity:
+        if mouse.hovered_entity!=button:
             mhe_z = mouse.hovered_entity.z  # y is horizontal
             scramble_sequence.pause()
             if not heldShift:
