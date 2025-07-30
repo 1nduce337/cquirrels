@@ -1,5 +1,6 @@
-from ursina import *
 import random
+from ursina import *
+from ursina.shaders import lit_with_shadows_shader
 
 app = Ursina(fullscreen=False)
 d = .51  # distance from the parent
@@ -15,8 +16,8 @@ drag_start = None
 face_normal = None
 is_rotating = False
 state = "Hrz"
+al=AmbientLight()
 
-background_music = Audio('good_music.mp3', loop=True, autoplay=True, volume=0.5)
 
 for a in range(-1, 2):
     for b in range(-1, 2):
@@ -27,6 +28,7 @@ for a in range(-1, 2):
                 model='cube',
                 scale=1,
                 position=(a, b, c),
+                shader=lit_with_shadows_shader,
                 color=color.white)
 for i in cubes.values():
     if i.x == 1:
@@ -35,6 +37,7 @@ for i in cubes.values():
             scale=.9,
             rotation=(0, 0, 90),
             position=(d, 0, 0),
+            shader=lit_with_shadows_shader,
             # collider='mesh',
             color=color.red,
             parent=i
@@ -47,6 +50,7 @@ for i in cubes.values():
             rotation=(0, 0, -90),
             position=(-d, 0, 0),
             # collider='mesh',
+            shader=lit_with_shadows_shader,
             color=color.black,
             parent=i
         )
@@ -58,6 +62,7 @@ for i in cubes.values():
             rotation=(0, 0, 0),
             position=(0, d, 0),
             # collider='mesh',
+            shader=lit_with_shadows_shader,
             color=color.yellow,
             parent=i
         )
@@ -69,6 +74,7 @@ for i in cubes.values():
             rotation=(90, 0, 0),
             position=(0, 0, d),
             color=color.green,
+            shader=lit_with_shadows_shader,
             # collider='mesh',
             parent=i
         )
@@ -81,6 +87,7 @@ for i in cubes.values():
             position=(0, -d, 0),
             # collider='mesh',
             color=color.blue,
+            shader=lit_with_shadows_shader,
             parent=i
         )
 for i in cubes.values():
@@ -90,6 +97,7 @@ for i in cubes.values():
             scale=.9,
             rotation=(-90, 0, 0),
             position=(0, 0, -d),
+            shader=lit_with_shadows_shader,
             # collider='mesh',
             color=color.orange,
             parent=i
@@ -99,10 +107,10 @@ for c in cubes.values():
     c.collider = 'box'
 
 # print(cubes.values())
-
 Sky (
     color = color.red
 )
+
 
 def rotateCube(direction, axis, point):
     for i in cubes.values():
@@ -265,14 +273,16 @@ scramble_sequence = Sequence(Func(scramble), Wait(.5), Func(
     unparentCubes), Wait(.5), loop=True)
 
 
+def get_combined_key(key):
+    return ''.join(g+'+' for g in ('control', 'shift', 'alt') if held_keys[g] and not g == key) + key
+
+
 def input(key):
     if key == 'r':
         scramble_sequence.start()
-    elif key == 'p':
+    if key == 'p':
         scramble_sequence.pause()
-    # if key == 'up arrow':
-    #     print("something")
-    elif key == 'left arrow':
+    if key == 'left mouse down':
         # print('pressed mouse')
         # print(mouse)
         if mouse.hovered_entity:
@@ -284,92 +294,51 @@ def input(key):
                 # print(e.y, mouse.hovered_entity.y,
                 #   e.y == mouse.hovered_entity.y)
                 rotateSequence = Sequence(
-                    Func(rotateCube('dir1', 'y', mhe_y)), Wait(.5), Func(unparentCubes()), Wait(.5))
-                sound_effect = Audio('coin', autoplay=True)
-                # if e.y == mhe_y:
-                #     print('\t', e.position)
-                #     print('\t', cubes[k].position)
-                #     cubes[k].y = 5
-                #     print('\t', cubes[k].position)
-                # print(e.position, e.y)
-                # if e.position.Y_getter() == mouse.hovered_entity.position.Y_getter():
-                #     cubes[k].y = 5
-                # print(cubes[k].position.Y_getter())
-                # print(e.position())
+                    Func(rotateCube('dir1', 'y', mhe_y)), Wait(1), Func(unparentCubes()), Wait(.5))
+        if held_keys['left shift']:
+            rotateSequence = Sequence(
+                Func(rotateCube('dir2', 'y', mhe_y)), Wait(1), Func(unparentCubes()), Wait(.5))
+
+            # if key == 'left mouse down':
+            #             print("Left Shift is held and Left Mouse button clicked!")
+            #         # if held_keys['left shift']:
+            #             print("Left Shift is held and Left Mouse button clicked!")
+            # if mouse.hovered_entity:
+            #     mhe_y = mouse.hovered_entity.y
+            #     for k in cubes.keys():
+            #         e = cubes[k]
+            #     axis = 0
+            #     rotateSequence = Sequence(
+            #         Func(rotateCube('dir2', 'y', mhe_y)), Wait(.5), Func(unparentCubes()), Wait(.5))
+
+            # print('pls')
+            # if e.y == mhe_y:
+            #     print('\t', e.position)
+            #     print('\t', cubes[k].position)
+            #     cubes[k].y = 5
+            #     print('\t', cubes[k].position)
+            # print(e.position, e.y)
+            # if e.position.Y_getter() == mouse.hovered_entity.position.Y_getter():
+            #     cubes[k].y = 5
+            # print(cubes[k].position.Y_getter())
+            # print(e.position())
             # print()
-    elif key == 'right arrow':
-        # print('pressed mouse')
-        # print(mouse)
-        if mouse.hovered_entity:
-            mhe_y = mouse.hovered_entity.y  # y is horizontal
-            # print(mouse.hovered_entity)
-            for k in cubes.keys():
-                e = cubes[k]
-                axis = 0
-                # print(e.y, mouse.hovered_entity.y,
-                #   e.y == mouse.hovered_entity.y)
-                rotateSequence = Sequence(
-                    Func(rotateCube('dir2', 'y', mhe_y)), Wait(.5), Func(unparentCubes()), Wait(.5))
-                sound_effect = Audio('coin', autoplay=True)
-                # if e.y == mhe_y:
-                #     print('\t', e.position)
-                #     print('\t', cubes[k].position)
-                #     cubes[k].y = 5
-                #     print('\t', cubes[k].position)
-                # print(e.position, e.y)
-                # if e.position.Y_getter() == mouse.hovered_entity.position.Y_getter():
-                #     cubes[k].y = 5
-                # print(cubes[k].position.Y_getter())
-                # print(e.position())
-            # print()
-    elif key == 'up arrow':
-        if mouse.hovered_entity:
-            mhe_x = mouse.hovered_entity.x  # y is horizontal
-            # print(mouse.hovered_entity)
-            for k in cubes.keys():
-                e = cubes[k]
-                axis = 0
-                # print(e.y, mouse.hovered_entity.y,
-                #   e.y == mouse.hovered_entity.y)
-                rotateSequence = Sequence(
-                    Func(rotateCube('dir1', 'x', mhe_x)), Wait(.5), Func(unparentCubes()), Wait(.5))
-                sound_effect = Audio('coin', autoplay=True)
-                # if e.y == mhe_y:
-                #     print('\t', e.position)
-                #     print('\t', cubes[k].position)
-                #     cubes[k].y = 5
-                #     print('\t', cubes[k].position)
-                # print(e.position, e.y)
-                # if e.position.Y_getter() == mouse.hovered_entity.position.Y_getter():
-                #     cubes[k].y = 5
-                # print(cubes[k].position.Y_getter())
-                # print(e.position())
-            # print()
-   
-    elif key == 'down arrow':
-        if mouse.hovered_entity:
-            mhe_x = mouse.hovered_entity.x  # y is horizontal
-            # print(mouse.hovered_entity)
-            for k in cubes.keys():
-                e = cubes[k]
-                axis = 0
-                # print(e.y, mouse.hovered_entity.y,
-                #   e.y == mouse.hovered_entity.y)
-                rotateSequence = Sequence(
-                    Func(rotateCube('dir2', 'x', mhe_x)), Wait(.5), Func(unparentCubes()), Wait(.5))
-                sound_effect = Audio('coin', autoplay=True)
-                # if e.y == mhe_y:
-                #     print('\t', e.position)
-                #     print('\t', cubes[k].position)
-                #     cubes[k].y = 5
-                #     print('\t', cubes[k].position)
-                # print(e.position, e.y)
-                # if e.position.Y_getter() == mouse.hovered_entity.position.Y_getter():
-                #     cubes[k].y = 5
-                # print(cubes[k].position.Y_getter())
-                # print(e.position())
-            # print()
-            
+
+            # if key == :
+            #         print('pressed mouse')
+            #         if mouse.hovered_entity:
+            #             mhe_y = mouse.hovered_entity.y
+            #         for k in cubes.keys():
+            #             e = cubes[k]
+            #             axis = 0 # y is horizontal
+            # # # print(mouse.hovered_entity)
+            # for k in cubes.keys():
+            #     e = cubes[k]
+            #     axis = 0
+            # print(e.y, mouse.hovered_entity.y,
+            #   e.y == mouse.hovered_entity.y)
+            # rotateSequence = Sequence(
+            #         Func(rotateCube('dir2', 'y', mhe_y)), Wait(.5), Func(unparentCubes()), Wait(.5))
 
             # print(mouse.hovered_entity)
             # print('here')
@@ -377,11 +346,14 @@ def input(key):
             # drag_start = mouse.position
             # face_normal = mouse.normal
 
-    # if key == 'left mouse up' and selected_cube and drag_start:
-    #     drag_end = mouse.position
-    #     drag_vector = drag_end - drag_start
-    #     dx = drag_vector.x
-    #     dy = drag_vector.y/
+            # if key == 'left mouse up' and selected_cube and drag_start:
+            #     drag_end = mouse.position
+            #     drag_vector = drag_end - drag_start
+            #     dx = drag_vector.x
+            #     dy = drag_vector.y
+
+            # rotateSequence = Sequence(
+            #             Func(rotateCube('dir1', 'y', mhe_y)), Wait(.5), Func(unparentCubes()), Wait(.5))
 
 
 EditorCamera()
