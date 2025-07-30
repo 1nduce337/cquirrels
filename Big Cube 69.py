@@ -16,7 +16,7 @@ face_normal = None
 is_rotating = False
 state = "Hrz"
 
-background_music = Audio('background_music.mp3', loop=True, autoplay=True, volume=0.5)
+background_music = Audio('good_music.mp3', loop=True, autoplay=True, volume=0.5)
 
 for a in range(-1, 2):
     for b in range(-1, 2):
@@ -101,7 +101,7 @@ for c in cubes.values():
 # print(cubes.values())
 
 Sky (
-    color = color.blue
+    color = color.red
 )
 
 def rotateCube(direction, axis, point):
