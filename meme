@@ -16,9 +16,8 @@ state = "Hrz"
 e = None
 isRotating = False
 
-Sky(
-color = color.blue
-)
+skybox_image = load_texture('Fractal.png')
+Sky(texture = skybox_image, shader=None)
 
 for a in range(-1, 2):
     for b in range(-1, 2):
