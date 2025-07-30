@@ -248,11 +248,10 @@ def rotate_z_layer(cube):
 
 def unparentCubes():
     for cube in cubes.values():
-        if cube.parent == rotation_point:
-            cube.world_parent = scene
-            cube.position = Vec3(round(cube.x), round(cube.y), round(cube.z))
-            cube.rotation = Vec3(round(cube.rotation_x / 90) * 90, round(
-                cube.rotation_y / 90) * 90, round(cube.rotation_z / 90) * 90)
+        cube.world_parent = scene
+        cube.position = Vec3(round(cube.x), round(cube.y), round(cube.z))
+        cube.rotation = Vec3(round(cube.rotation_x / 90) * 90, round(
+            cube.rotation_y / 90) * 90, round(cube.rotation_z / 90) * 90)
     rotation_point.rotation = (0, 0, 0)
 
 
@@ -284,8 +283,8 @@ def input(key):
                 # print(e.y, mouse.hovered_entity.y,
                 #   e.y == mouse.hovered_entity.y)
                 rotateSequence = Sequence(
-                    Func(rotateCube('dir1', 'y', mhe_y)), Wait(.5), Func(unparentCubes), Wait(1.5))
-                sound_effect = Audio('assets/coin', autoplay=True)
+                    Func(rotateCube('dir1', 'y', mhe_y)), Wait(.5), Func(unparentCubes), Wait(.5))
+                sound_effect = Audio('coin', autoplay=True)
                 # if e.y == mhe_y:
                 #     print('\t', e.position)
                 #     print('\t', cubes[k].position)
@@ -309,8 +308,8 @@ def input(key):
                 # print(e.y, mouse.hovered_entity.y,
                 #   e.y == mouse.hovered_entity.y)
                 rotateSequence = Sequence(
-                    Func(rotateCube('dir2', 'y', mhe_y)), Wait(.5), Func(unparentCubes), Wait(1.5))
-                sound_effect = Audio('assets/coin', autoplay=True)
+                    Func(rotateCube('dir2', 'y', mhe_y)), Wait(.5), Func(unparentCubes), Wait(.5))
+                sound_effect = Audio('coin', autoplay=True)
                 # if e.y == mhe_y:
                 #     print('\t', e.position)
                 #     print('\t', cubes[k].position)
@@ -332,8 +331,8 @@ def input(key):
                 # print(e.y, mouse.hovered_entity.y,
                 #   e.y == mouse.hovered_entity.y)
                 rotateSequence = Sequence(
-                    Func(rotateCube('dir1', 'x', mhe_x)), Wait(.5), Func(unparentCubes), Wait(1.5))
-                sound_effect = Audio('assets/coin', autoplay=True)
+                    Func(rotateCube('dir1', 'x', mhe_x)), Wait(.5), Func(unparentCubes), Wait(.5))
+                sound_effect = Audio('coin', autoplay=True)
                 # if e.y == mhe_y:
                 #     print('\t', e.position)
                 #     print('\t', cubes[k].position)
@@ -356,8 +355,8 @@ def input(key):
                 # print(e.y, mouse.hovered_entity.y,
                 #   e.y == mouse.hovered_entity.y)
                 rotateSequence = Sequence(
-                    Func(rotateCube('dir2', 'x', mhe_x)), Wait(.5), Func(unparentCubes), Wait(1.5))
-                sound_effect = Audio('assets/coin', autoplay=True)
+                    Func(rotateCube('dir2', 'x', mhe_x)), Wait(.5), Func(unparentCubes), Wait(.5))
+                sound_effect = Audio('coin', autoplay=True)
                 # if e.y == mhe_y:
                 #     print('\t', e.position)
                 #     print('\t', cubes[k].position)
