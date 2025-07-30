@@ -19,6 +19,17 @@ isRotating = False
 skybox_image = load_texture('Fractal.png')
 Sky(texture = skybox_image, shader=None)
 
+
+window.editor_ui.disable()
+
+my_text = Text(text="CQUIRRELS CUBE!", scale=3, origin=(0.7, -5.5))
+
+
+my_text = Text(text="Space Bar+LMB: Y axis rotation", scale=1, origin=(1.55, -14))
+my_text = Text(text="Z+LMB: Z axis rotation", scale=1, origin=(2.34, -13))
+my_text = Text(text="Shift+any previous rotation binds: spin in another direction", scale=1, origin=(.576, -12))
+
+
 for a in range(-1, 2):
     for b in range(-1, 2):
         for c in range(-1, 2):
