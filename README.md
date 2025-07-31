@@ -8,5 +8,4 @@ Python 3.13+ and Ursina (```pip install ursina```) are required for this brillia
 
 ## Use
 ~~Yeah just use it how hard can it be~~
-Just download main.py and do things with it.
-Or a different file who really knows anyway.
+Just download main.py and do things with it. I guess.

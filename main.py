@@ -1,100 +1,431 @@
-from ursina import *
 import random
+from ursina import *
 
-colorListNumRemaining=[9,9,9,9,9,9]
-colorList=[color.white, color.red, color.blue, color.orange, color.green, color.yellow]
-cubeSides = {}
-axisConversion = {'x':0,'y':1,'z':2}
-app=Ursina(fullscreen=False)
+app = Ursina(fullscreen=False)
+d = .51  # distance from the parent
+cubes = {}
+directions = ['dir1', 'dir2']
+axis = ['x', 'y', 'z']
+values = [-1, 0, 1]
+rotation_point = Entity(model='cube', scale=1, position=(0, 0, 0))
+rotateDuration = .4
+selected_cube = None
+drag_start = None
+face_normal = None
+state = "Hrz"
+e = None
+isRotating = False
 
-frontRot=(-90,0,0) #z=-1.5
-behindRot=(90,0,0) #z=1.5
-upRot=(0,0,0) #y=1.5
-downRot=(180,0,0) #y=-1.5 
-rightRot=(0,0,90) #x=1.5
-leftRot=(0,0,-90) #x=-1.5
-
-
-class cubeSide:
-    def __init__(self,rot,fix,fval): #fix is the 'locked value' for that face; fval is the value at which it was locked at. e.g. fix=y fval=5 means this face has y fixed at 5
-        self.sides = []
-        for i in range (-1,2):
-            for j in range (-1,2):
-                if(fix=='y'):
-                    color = colorList[random.randint(0,5)]
-                    while colorListNumRemaining[colorList.index(color)] <= 0:
-                        color = colorList[random.randint(0,5)]
-                    colorListNumRemaining[colorList.index(color)] -= 1
-                    cubeSides[(i,fval,j)] = Entity(
-                        model='plane',
-                        scale=1,
-                        rotation=rot,
-                        position=(i,fval,j),
-                        color=color
-                    )
-
-                    faceColor = [0,1,2,3,4,5,6,7,8,9]
-                    # if fval == 1.5:
-                        # faceColor
+skybox_image = load_texture('Fractal.png')
+Sky(texture = skybox_image, shader=None)
 
 
-                        
-                elif(fix=='x'):
-                    color = colorList[random.randint(0,5)]
-                    while colorListNumRemaining[colorList.index(color)] <= 0:
-                        color = colorList[random.randint(0,5)]
-                    colorListNumRemaining[colorList.index(color)] -= 1
-                    cubeSides[(fval,i,j)] =Entity(
-                        model='plane',
-                        scale=1,
-                        rotation=rot,
-                        position=(fval,i,j),
-                        color=color
-                    )
-                    
-                elif(fix=='z'):
-                    color = colorList[random.randint(0,5)]
-                    while colorListNumRemaining[colorList.index(color)] <= 0:
-                        color = colorList[random.randint(0,5)]
-                    colorListNumRemaining[colorList.index(color)] -= 1
-                    cubeSides[(j,i,fval)] =Entity(
-                        model='plane',
-                        scale=1,
-                        rotation=rot,
-                        position=(j,i,fval),
-                        color=color)
-                    
-
-cubeSide(frontRot,'z',-1.5)
-cubeSide(behindRot,'z',1.5)
-cubeSide(upRot,'y',1.5)
-cubeSide(downRot,'y',-1.5)
-cubeSide(rightRot,'x',1.5)
-cubeSide(leftRot,'x',-1.5)
-def rotateFace(point, axis):
-    cubePlane = []
-    remainingAxis = []
-    cubePlaneSection1 = []
-    cubePlaneSection2 = []
-    cubePlaneSection3 = []
-    cubePlaneSection4 = []
-    cubePlaneSection5 = []
-    cubePlaneSection6 = []
-    for tpl in cubeSides: 
-        if tpl[axisConversion[axis]] == point: # checking if the block is on the plane
-            cubePlane.append(tpl) # appending the tuple to a list
-            for i in axisConversion:
-                if i != axisConversion[axis]:
-                    remainingAxis.append[i]
-            
-
-                    
+window.editor_ui.disable()
+background_music = Audio('good_music.mp3', loop=True, autoplay=True, volume=0.5)
+my_text = Text(text="CQUIRRELS CUBE!", scale=3, origin=(0.7, -5.5))
 
 
+my_text = Text(text="Space Bar+LMB: Y axis rotation", scale=1, origin=(1.55, -14))
+my_text = Text(text="Z+LMB: Z axis rotation", scale=1, origin=(2.34, -13))
+my_text = Text(text="Shift+any previous rotation binds: spin in another direction", scale=1, origin=(.576, -12))
+button = Button(scale=(.2,.1), text='Toggle Shuffle',origin=(3.2,-2))
+button.text_entity.world_scale = 15
+shuffleOn=False
+def action():
+    global shuffleOn
+    if not shuffleOn and not isRotating:
+        scramble_sequence.start()
+        shuffleOn=True
+    elif shuffleOn and not isRotating:
+        scramble_sequence.pause()
+        shuffleOn=False
+button.on_click=action
 
-                        
-                
+for a in range(-1, 2):
+    for b in range(-1, 2):
+        for c in range(-1, 2):
+            if (a, b, c) == (0, 0, 0):
+                continue
+            cubes[a, b, c] = Entity(
+                model='cube',
+                scale=1,
+                position=(a, b, c),
+                color=color.white)
+for i in cubes.values():
+    if i.x == 1:
+        cubeSides = Entity(
+            model='plane',
+            scale=.9,
+            rotation=(0, 0, 90),
+            position=(d, 0, 0),
+            # collider='mesh',
+            color=color.red,
+            parent=i
+        )
+for i in cubes.values():
+    if i.x == -1:
+        cubeSides = Entity(
+            model='plane',
+            scale=.9,
+            rotation=(0, 0, -90),
+            position=(-d, 0, 0),
+            # collider='mesh',
+            color=color.black,
+            parent=i
+        )
+for i in cubes.values():
+    if i.y == 1:
+        cubeSides = Entity(
+            model='plane',
+            scale=.9,
+            rotation=(0, 0, 0),
+            position=(0, d, 0),
+            # collider='mesh',
+            color=color.yellow,
+            parent=i
+        )
+for i in cubes.values():
+    if i.z == 1:
+        cubeSides = Entity(
+            model='plane',
+            scale=.9,
+            rotation=(90, 0, 0),
+            position=(0, 0, d),
+            color=color.green,
+            # collider='mesh',
+            parent=i
+        )
+for i in cubes.values():
+    if i.y == -1:
+        cubeSides = Entity(
+            model='plane',
+            scale=.9,
+            rotation=(0, 0, 180),
+            position=(0, -d, 0),
+            # collider='mesh',
+            color=color.blue,
+            parent=i
+        )
+for i in cubes.values():
+    if i.z == -1:
+        cubeSides = Entity(
+            model='plane',
+            scale=.9,
+            rotation=(-90, 0, 0),
+            position=(0, 0, -d),
+            # collider='mesh',
+            color=color.orange,
+            parent=i
+        )
+for c in cubes.values():
+    c.combine()
+    c.collider = 'box'
+
+# print(cubes.values())
+
+
+def rotateCube(direction, axis, point):
+    global isRotating
+    isRotating = True
+    for i in cubes.values():
+        if axis == 'x':
+            if i.x == point:
+                i.parent = rotation_point
+        if axis == 'y':
+            if i.y == point:
+                i.parent = rotation_point
+        if axis == 'z':
+            if i.z == point:
+                i.parent = rotation_point
+    if direction.lower() == 'dir1':
+        if axis == 'x':
+            rotation_point.animate(
+                'rotation_x', rotation_point.rotation_x + 90, duration=rotateDuration)
+        if axis == 'y':
+            rotation_point.animate(
+                'rotation_y', rotation_point.rotation_y + 90, duration=rotateDuration)
+        if axis == 'z':
+            rotation_point.animate(
+                'rotation_z', rotation_point.rotation_z + 90, duration=rotateDuration)
+    if direction.lower() == 'dir2':
+        if axis == 'x':
+            rotation_point.animate(
+                'rotation_x', rotation_point.rotation_x - 90, duration=rotateDuration)
+        if axis == 'y':
+            rotation_point.animate(
+                'rotation_y', rotation_point.rotation_y - 90, duration=rotateDuration)
+        if axis == 'z':
+            rotation_point.animate(
+                'rotation_z', rotation_point.rotation_z - 90, duration=rotateDuration)
+
+
+# def input(key):
+#     global selected_cube, drag_start, face_normal, is_rotating
+
+#     if is_rotating:
+#         return
+
+#     if key == 'left mouse down':
+#         if mouse.hovered_entity:
+#             selected_cube = mouse.hovered_entity
+#             drag_start = mouse.position
+#             face_normal = mouse.normal
+
+#     if key == 'left mouse up' and selected_cube and drag_start:
+#         drag_end = mouse.position
+#         drag_vector = drag_end - drag_start
+#         dx = drag_vector.x
+#         dy = drag_vector.y
+
+#         if face_normal == Vec3(1, 0, 0) or face_normal == Vec3(-1, 0, 0):
+#             if abs(dy) > abs(dx):
+#                 rotate_y_layer(selected_cube)
+
+#         elif face_normal == Vec3(0, 1, 0) or face_normal == Vec3(0, -1, 0):
+#             if abs(dy) > abs(dx):
+#                 rotate_x_layer(selected_cube)
+
+#         elif face_normal == Vec3(0, 0, 1) or face_normal == Vec3(0, 0, -1):
+#             if abs(dx) > abs(dy):
+#                 rotate_z_layer(selected_cube)
+
+#         selected_cube = None
+#         drag_start = None
+#         face_normal = None
+
+
+# def rotate_x_layer(cube):
+#     global is_rotating
+#     is_rotating = True
+#     layer_x = round(cube.x)
+#     layer_cubes = [c for c in cubes if round(c.x) == layer_x]
+#     rotation_point.rotation = (0, 0, 0)
+#     for c in layer_cubes:
+#         c.parent = rotation_point
+#     rotation_point.animate_rotation(
+#         Vec3(0, 0, 90), duration=0.25, curve=curve.linear)
+
+#     def finish():
+#         for c in layer_cubes:
+#             c.world_position = c.world_posfition
+#             c.world_rotation = c.world_rotation
+#             c.parent = scene
+#             c.rotation = Vec3(round(c.rotation_x / 90) * 90,
+#                               round(c.rotation_y / 90) * 90,
+#                               round(c.rotation_z / 90) * 90)
+#             c.position = Vec3(round(c.x), round(c.y), round(c.z))
+#         is_rotating = False
+
+#     invoke(finish, delay=0.25)
+
+
+# def rotate_y_layer(cube):
+#     global is_rotating
+#     is_rotating = True
+#     layer_y = round(cube.y)
+#     layer_cubes = [c for c in cubes if round(c.y) == layer_y]
+#     rotation_point.rotation = (0, 0, 0)
+#     for c in layer_cubes:
+#         c.parent = rotation_point
+#     rotation_point.animate_rotation(
+#         Vec3(0, 0, 90), duration=0.25, curve=curve.linear)
+
+#     def finish():
+#         for c in layer_cubes:
+#             c.world_position = c.world_position
+#             c.world_rotation = c.world_rotation
+#             c.parent = scene
+#             c.rotation = Vec3(round(c.rotation_x / 90) * 90,
+#                               round(c.rotation_y / 90) * 90,
+#                               round(c.rotation_z / 90) * 90)
+#             c.position = Vec3(round(c.x), round(c.y), round(c.z))
+#         is_rotating = False
+
+#     invoke(finish, delay=0.25)
+
+
+def rotate_z_layer(cube):
+    global is_rotating
+    is_rotating = True
+    layer_z = round(cube.z)
+    layer_cubes = [c for c in cubes if round(c.z) == layer_z]
+    rotation_point.rotation = (0, 0, 0)
+    for c in layer_cubes:
+        c.parent = rotation_point
+    rotation_point.animate_rotation(
+        Vec3(0, 90, 0), duration=0.25, curve=curve.linear)
+
+    def finish():
+        for c in layer_cubes:
+            c.world_position = c.world_position
+            c.world_rotation = c.world_rotation
+            c.parent = scene
+            c.rotation = Vec3(round(c.rotation_x / 90) * 90,
+                              round(c.rotation_y / 90) * 90,
+                              round(c.rotation_z / 90) * 90)
+            c.position = Vec3(round(c.x), round(c.y), round(c.z))
+        is_rotating = False
+        invoke(finish, delay=0.25)
+
+
+def unparentCubes():
+    for cube in cubes.values():
+        if cube.parent == rotation_point:
+            cube.world_parent = scene
+            cube.position = Vec3(
+                round(cube.x), round(cube.y), round(cube.z))
+            cube.rotation = Vec3(round(cube.rotation_x / 90) * 90, round(
+                cube.rotation_y / 90) * 90, round(cube.rotation_z / 90) * 90)
+    rotation_point.rotation = (0, 0, 0)
+
+
+def scramble():
+    rotateCube(random.choice(directions),
+               random.choice(axis), random.choice(values))
+
+
+def setIsRotating():
+    global isRotating
+    isRotating = False
+
+
+scramble_sequence = Sequence(Func(scramble), Wait(.5), Func(
+    unparentCubes), Func(setIsRotating), Wait(.5), loop=True)
+
+
+# def get_combined_key(key):
+#     return ''.join(g+'+' for g in ('control', 'shift', 'alt') if held_keys[g] and not g == key) + key
+
+
+def input(key):
+    heldSpace = held_keys["space"]
+    HeldZ = held_keys['z']
+    heldShift = held_keys['left shift']
+    global isRotating
+    if isRotating == True:
+        return None
+    if key == 'r' and not isRotating:
+        scramble_sequence.start()
+    if key == 'p' and not isRotating:
+        scramble_sequence.pause()
+    if key == 'left mouse down' and not heldSpace and not isRotating and not HeldZ:
+        # print('pressed mouse')
+        # print(mouse)
+        print(mouse.hovered_entity)
+        if mouse.hovered_entity!=button:
+            mhe_y = mouse.hovered_entity.y  # y is horizontal
+            scramble_sequence.pause()
+            if not heldShift:
+                rotateCube('dir1', 'y', mhe_y)
+                invoke(unparentCubes, delay=.5)
+                invoke(setIsRotating, delay=.6)
+
+            if heldShift and not isRotating:
+                scramble_sequence.pause()
+                rotateCube('dir2', 'y', mhe_y)
+                invoke(unparentCubes, delay=.5)
+                invoke(setIsRotating, delay=.6)
+    if heldSpace and key == 'left mouse down' and not isRotating and not HeldZ:
+        # print('spacebar')
+        if mouse.hovered_entity!=button:
+            mhe_x = mouse.hovered_entity.x
+            # print(mhe_x)  # x is horizontal
+            if key == 'left mouse down' and not heldShift and not isRotating:
+                scramble_sequence.pause()
+                rotateCube('dir1', 'x', mhe_x)
+                invoke(unparentCubes, delay=.5)
+                invoke(setIsRotating, delay=.6)
+            if key == 'left mouse down':
+                if heldShift and not isRotating:
+                    scramble_sequence.pause()
+                    rotateCube('dir2', 'x', mhe_x)
+                    invoke(unparentCubes, delay=.5)
+                    invoke(setIsRotating, delay=.6)
+    if key == 'left mouse down' and not heldSpace and not isRotating and HeldZ:
+        # print('pressed mouse')
+        # print(mouse)
+        if mouse.hovered_entity!=button:
+            mhe_z = mouse.hovered_entity.z  # y is horizontal
+            scramble_sequence.pause()
+            if not heldShift:
+                rotateCube('dir1', 'z', mhe_z)
+                invoke(unparentCubes, delay=.5)
+                invoke(setIsRotating, delay=.6)
+
+            if heldShift and not isRotating:
+                scramble_sequence.pause()
+                rotateCube('dir2', 'z', mhe_z)
+                invoke(unparentCubes, delay=.5)
+                invoke(setIsRotating, delay=.6)
+
+    #   if key == 'left mouse up':
+    # Wait(.5)
+    # print("Unparenting")
+    # for cube in cubes.values():
+    #     if cube.parent == rotation_point:
+    #         cube.world_parent = scene
+    #         print("world parent set")
+    # cube.position = Vec3(
+    #   round(cube.x), round(cube.y), rond(cube.z))
+    # cube.rotation = Vec3(round(cube.rotation_x / 90) * 90, round(
+    # cube.rotation_y / 90) * 90, round(cube.rotation_z / 90) * 90)
+    # if key == 'left mouse down':
+    #             print("Left Shift is held and Left Mouse button clicked!")
+    #         # if held_keys['left shift']:
+    #             print("Left Shift is held and Left Mouse button clicked!")
+    # if mouse.hovered_entity:
+    #     mhe_y = mouse.hovered_entity.y
+    #     for k in cubes.keys():
+    #         e = cubes[k]
+    #     axis = 0
+    #     rotateSequence = Sequence(
+    #         Func(rotateCube('dir2', 'y', mhe_y)), Wait(.5), Func(unparentCubes()), Wait(.5))
+
+    # print('pls')
+    # if e.y == mhe_y:
+    #     print('\t', e.position)
+    #     print('\t', cubes[k].position)
+    #     cubes[k].y = 5
+    #     print('\t', cubes[k].position)
+    # print(e.position, e.y)
+    # if e.position.Y_getter() == mouse.hovered_entity.position.Y_getter():
+    #     cubes[k].y = 5
+    # print(cubes[k].position.Y_getter())
+    # print(e.position())
+    # print()
+
+    # if key == :
+    #         print('pressed mouse')
+    #         if mouse.hovered_entity:
+    #             mhe_y = mouse.hovered_entity.y
+    #         for k in cubes.keys():
+    #             e = cubes[k]
+    #             axis = 0 # y is horizontal
+    # # # print(mouse.hovered_entity)
+    # for k in cubes.keys():
+    #     e = cubes[k]
+    #     axis = 0
+    # print(e.y, mouse.hovered_entity.y,
+    #   e.y == mouse.hovered_entity.y)
+    # rotateSequence = Sequence(
+    #         Func(rotateCube('dir2', 'y', mhe_y)), Wait(.5), Func(unparentCubes()), Wait(.5))
+
+    # print(mouse.hovered_entity)
+    # print('here')
+    # selected_cube = mouse.hovered_entity
+    # drag_start = mouse.position
+    # face_normal = mouse.normal
+
+    # if key == 'left mouse up' and selected_cube and drag_start:
+    #     drag_end = mouse.position
+    #     drag_vector = drag_end - drag_start
+    #     dx = drag_vector.x
+    #     dy = drag_vector.y
+
+    # rotateSequence = Sequence(
+    #             Func(rotateCube('dir1', 'y', mhe_y)), Wait(.5), Func(unparentCubes()), Wait(.5))
+
 
 EditorCamera()
+# to un parent do world_parent = scene
 app.run()
-# Each tuple has -1.5, -1, 0, 1, 1.5 for each value
