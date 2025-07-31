@@ -312,7 +312,7 @@ def input(key):
         # print('pressed mouse')
         # print(mouse)
         print(mouse.hovered_entity)
-        if mouse.hovered_entity!=button:
+        if mouse.hovered_entity!=button and mouse.hovered_entity:
             mhe_y = mouse.hovered_entity.y  # y is horizontal
             scramble_sequence.pause()
             if not heldShift:
