@@ -8,49 +8,69 @@ from ursina import *
 
 app = Ursina(fullscreen=False)
 d = .51  # This is the distance from the parent
-cubes = {} # This is the dictionary that holds all of the cubes.
+cubes = {}  # This is the dictionary that holds all of the cubes.
 
 # These are the lists that Random uses for the scrambling.
 directions = ['dir1', 'dir2']
 axis = ['x', 'y', 'z']
 values = [-1, 0, 1]
-rotationPoint = Entity(model='cube', scale=1, position=(0, 0, 0)) # This is where a center of rotating is defined.
+# This is where a center of rotating is defined.
+rotationPoint = Entity(model='cube', scale=1, position=(0, 0, 0))
 rotateDuration = .4
-isRotating = False # This tracks if the cube is currently rotating. 
-shuffleOn=False
+isRotating = False  # This tracks if the cube is currently rotating.
+shuffleOn = False
 
-# This is where we make the sky. 
-skybox_image = load_texture('color.png')
-Sky(texture = skybox_image, shader=None)
+# This is where we make the sky.
+sky_texture = load_texture('bg.png')
+sky_texture.wrap_mode = 'repeat'   # I made the texture repeat instead of clamp
 
-# THis is where some UI and background music is defined. 
+# We Created a big cube that surrounds everything
+sky = Entity(
+    model='cube',
+    texture=sky_texture,
+    scale=100,   # really big so you never reach the edge
+    double_sided=True
+)
+
+sky.texture_scale = (1, 1)     # 1 means texture covers the whole face once
+
+
+# THis is where some UI and background music is defined.
 window.editor_ui.disable()
-background_music = Audio('background_music.mp3', loop=True, autoplay=True, volume=0.5)
+background_music = Audio('background_music.mp3',
+                         loop=True, autoplay=True, volume=0.5)
 my_text = Text(text="CQUIRRELS CUBE!", scale=3, origin=(0.7, -5.5))
-my_text = Text(text="Space Bar+LMB: Y axis rotation", scale=1, origin=(1.55, -14))
+my_text = Text(text="Space Bar+LMB: Y axis rotation",
+               scale=1, origin=(1.55, -14))
 my_text = Text(text="Z+LMB: Z axis rotation", scale=1, origin=(2.34, -13))
-my_text = Text(text="Shift+any previous rotation binds: spin in another direction", scale=1, origin=(.576, -12))
-button = Button(scale=(.2,.1), text='Toggle Shuffle',origin=(3.2,-2))
+my_text = Text(text="Shift+any previous rotation binds: spin in another direction",
+               scale=1, origin=(.576, -12))
+button = Button(scale=(.2, .1), text='Toggle Shuffle', origin=(3.2, -2))
 button.text_entity.world_scale = 20
 
-# This is where the button is given an action when pressed. 
+# This is where the button is given an action when pressed.
+
+
 def action():
     global shuffleOn
     if not shuffleOn and not isRotating:
         scrambleSequence.start()
-        shuffleOn=True
+        shuffleOn = True
     elif shuffleOn and not isRotating:
         scrambleSequence.pause()
-        shuffleOn=False
-button.on_click=action
+        shuffleOn = False
+
+
+button.on_click = action
 
 # This is some of the most important code, which generates all of the smaller squares, which are then added to a dictionary.
 for a in range(-1, 2):
     for b in range(-1, 2):
         for c in range(-1, 2):
-            if (a, b, c) == (0, 0, 0): # This code makes it so that a cube is not generated at the center.
+            # This code makes it so that a cube is not generated at the center.
+            if (a, b, c) == (0, 0, 0):
                 continue
-            cubes[a, b, c] = Entity( #This code generates the actual cube. 
+            cubes[a, b, c] = Entity(  # This code generates the actual cube.
                 model='cube',
                 scale=1,
                 position=(a, b, c),
@@ -58,17 +78,21 @@ for a in range(-1, 2):
 
 # The following code is also among the most important, adding differently colored sides.
 for i in cubes.values():
-    if i.x == 1: #This code selects any cubes with an x of -1 and addes a colored side to it
+    if i.x == 1:  # This code selects any cubes with an x of -1 and addes a colored side to it
         cubeSides = Entity(
-            model='plane', #This side is made out of a plane.
-            scale=.9, # It has a scale of .9 so there is white space next to it.
-            rotation=(0, 0, 90), # It's rotation is set to 0,0,90 so it is visible.
-            position=(d, 0, 0), # It is generated .51 units from the x of the center cube. 
-            color=color.red, # It is red.
-            parent=i # It's parent is i (the cube it is next to) so it can be combined.
+            model='plane',  # This side is made out of a plane.
+            # It has a scale of .9 so there is white space next to it.
+            scale=.9,
+            # It's rotation is set to 0,0,90 so it is visible.
+            rotation=(0, 0, 90),
+            # It is generated .51 units from the x of the center cube.
+            position=(d, 0, 0),
+            color=color.red,  # It is red.
+            # It's parent is i (the cube it is next to) so it can be combined.
+            parent=i
         )
     # The next 5 sections of cube do similiar things. The only thing of note is that if is used so cubes can have up to 3 colored sides.
-    if i.x == -1: 
+    if i.x == -1:
         cubeSides = Entity(
             model='plane',
             scale=.9,
@@ -118,16 +142,19 @@ for c in cubes.values():
     c.combine()
     c.collider = 'box'
 
-# This function makes the cubes rotate. 
+# This function makes the cubes rotate.
+
+
 def rotateCube(direction, axis, point):
-    global isRotating # This calls the global variable isRotating and allows the function to make changes to it.
-    isRotating = True # This sets the isRotating variable to true.
+    # This calls the global variable isRotating and allows the function to make changes to it.
+    global isRotating
+    isRotating = True  # This sets the isRotating variable to true.
     for i in cubes.values():
         # This code checks if the point on a given axis of a cube is equal to what is being rotated.
         # If this is the case, the parent of each cube is set to the rotation point, allowing the cubes to rotate with the rotation point.
-        # This substantialy reduces the complexity and lines of code necessary. 
-        if axis == 'x':  
-            if i.x == point: 
+        # This substantialy reduces the complexity and lines of code necessary.
+        if axis == 'x':
+            if i.x == point:
                 i.parent = rotationPoint
         if axis == 'y':
             if i.y == point:
@@ -136,10 +163,12 @@ def rotateCube(direction, axis, point):
             if i.z == point:
                 i.parent = rotationPoint
     # The following code rotates the rotation point, rotating the cube
-    if direction == 'dir1': # dir1/2 determines which way the center point/cube rotates.
+    # dir1/2 determines which way the center point/cube rotates.
+    if direction == 'dir1':
         if axis == 'x':
             rotationPoint.animate(
-                'rotation_x', rotationPoint.rotation_x + 90, duration=rotateDuration) # This rotates the center point, animating it to take the provided duration time to move.
+                # This rotates the center point, animating it to take the provided duration time to move.
+                'rotation_x', rotationPoint.rotation_x + 90, duration=rotateDuration)
         # The following code does the same thing for the other axis and directions, and uses elif/else to make it more consolidated and clear.
         elif axis == 'y':
             rotationPoint.animate(
@@ -159,51 +188,66 @@ def rotateCube(direction, axis, point):
                 'rotation_z', rotationPoint.rotation_z - 90, duration=rotateDuration)
 # This function finishes the rotation process.
 # It is seperated so the cubes arent uparented before they are supposed to be.
-def finishRotation(): 
+
+
+def finishRotation():
     for cube in cubes.values():
-        if cube.parent == rotationPoint: # This code makes sure that we are only doing accessing cubes that have been rotated, improving speed.
-            cube.world_parent = scene # This sets the cubes parent to the scene, while keeping their rotation.
-            cube.position = Vec3( # This makes sure there position isn't to effected by floating point. 
+        # This code makes sure that we are only doing accessing cubes that have been rotated, improving speed.
+        if cube.parent == rotationPoint:
+            # This sets the cubes parent to the scene, while keeping their rotation.
+            cube.world_parent = scene
+            cube.position = Vec3(  # This makes sure there position isn't to effected by floating point.
                 round(cube.x), round(cube.y), round(cube.z))
-            cube.rotation = Vec3(round(cube.rotation_x / 90) * 90, round( # This code does the same rounding for rotation.
+            cube.rotation = Vec3(round(cube.rotation_x / 90) * 90, round(  # This code does the same rounding for rotation.
                 cube.rotation_y / 90) * 90, round(cube.rotation_z / 90) * 90)
     rotationPoint.rotation = (0, 0, 0)
 
-# This function scrambles the cube. 
+# This function scrambles the cube.
+
+
 def scramble():
     rotateCube(random.choice(directions),
                random.choice(axis), random.choice(values))
 
 # This funciton sets isRotating to false. It is seperated so that it doesn't happen until the roation has actually finished.
+
+
 def setIsRotating():
     global isRotating
     isRotating = False
+
 
 # This code defines a scrambling sequence. A sequence should theoretically make it so the next function is not activated till the first finishes.
 # It doesnt actually do this though, so we needed to add periods of "Wait", where the code does not move to the next step for a set amount of time.
 scrambleSequence = Sequence(Func(scramble), Wait(.5), Func(
     finishRotation), Func(setIsRotating), Wait(.5), loop=True)
 
+
 def input(key):
-    # This code makes is so user input can rotate the cube. 
+    # This code makes is so user input can rotate the cube.
 
     # This first part declares different variables which are actions the user could take.
     heldSpace = held_keys["space"]
     HeldZ = held_keys['z']
     heldShift = held_keys['left shift']
 
-    # THis code detects if just left mouse was pressed, and moves the cube accordingly. 
-    if key == 'left mouse down' and not heldSpace and not isRotating and not HeldZ: # This makes sure that the cube only moves if it isn't currently moving, and if the only input is left click.
-        if mouse.hovered_entity!=button and mouse.hovered_entity: # This check if the mouse is over a none button enity.
-            mheY = mouse.hovered_entity.y # It then takes that Y, using it for the rotateCube function. This will change the X of each cube.
-            scrambleSequence.pause() # This pauses the scramble if it currently happening.
-            if not heldShift: # Part moves the cube using dir1 if shift is not helf. 
+    # THis code detects if just left mouse was pressed, and moves the cube accordingly.
+    # This makes sure that the cube only moves if it isn't currently moving, and if the only input is left click.
+    if key == 'left mouse down' and not heldSpace and not isRotating and not HeldZ:
+        # This check if the mouse is over a none button enity.
+        if mouse.hovered_entity != button and mouse.hovered_entity:
+            # It then takes that Y, using it for the rotateCube function. This will change the X of each cube.
+            mheY = mouse.hovered_entity.y
+            # This pauses the scramble if it currently happening.
+            scrambleSequence.pause()
+            if not heldShift:  # Part moves the cube using dir1 if shift is not helf.
                 rotateCube('dir1', 'y', mheY)
                 invoke(finishRotation, delay=.5)
                 invoke(setIsRotating, delay=.6)
-                sound_effect = Audio('coin', autoplay=True) # It also plays a sound.
+                # It also plays a sound.
+                sound_effect = Audio('coin', autoplay=True)
 
-            if heldShift and not isRotating: # This moves the cube using dir2.
+            if heldShift and not isRotating:  # This moves the cube using dir2.
                 scrambleSequence.pause()
                 rotateCube('dir2', 'y', mheY)
                 invoke(finishRotation, delay=.5)
@@ -211,7 +255,7 @@ def input(key):
                 sound_effect = Audio('coin', autoplay=True)
     # The following code does similiar actions, but instead rotating Y and Z, using X and Z inputs respectively.
     if heldSpace and key == 'left mouse down' and not isRotating and not HeldZ:
-        if mouse.hovered_entity!=button:
+        if mouse.hovered_entity != button:
             mheX = mouse.hovered_entity.x
             if key == 'left mouse down' and not heldShift and not isRotating:
                 scrambleSequence.pause()
@@ -227,7 +271,7 @@ def input(key):
                     invoke(setIsRotating, delay=.6)
                     sound_effect = Audio('coin', autoplay=True)
     if key == 'left mouse down' and not heldSpace and not isRotating and HeldZ:
-        if mouse.hovered_entity!=button:
+        if mouse.hovered_entity != button:
             mheZ = mouse.hovered_entity.z  # y is horizontal
             scrambleSequence.pause()
             if not heldShift:
@@ -243,6 +287,7 @@ def input(key):
                 invoke(setIsRotating, delay=.6)
                 sound_effect = Audio('coin', autoplay=True)
 
-EditorCamera() # This turns the editor camera on so you can move around.
-app.run() # This runs the code. 
+
+EditorCamera()  # This turns the editor camera on so you can move around.
+app.run()  # This runs the code.
 # We hope you enjoyed learning how this code works, it was a super hard challenge, but was also really fun!
