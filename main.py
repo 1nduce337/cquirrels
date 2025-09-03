@@ -33,7 +33,7 @@ sky = Entity(
 sky.texture_scale = (1, 1)     # 1 means texture covers the whole face once
 
 
-# THis is where some UI and background music is defined.
+# This is where some UI and background music is defined.
 window.editor_ui.disable()
 background_music = Audio('background_music.mp3',
                          loop=True, autoplay=True,)
