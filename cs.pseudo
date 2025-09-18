@@ -1,0 +1,8 @@
+DECLARE Filename : STRING
+DECLARE newrecord : STRING
+newrecord <- input "Enter text to write"
+
+OPEN Filename FOR WRITE 
+WRITE newrecord, Filename
+CLOSE Filename
+
