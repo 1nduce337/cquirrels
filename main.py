@@ -21,13 +21,22 @@ isRotating = False  # This tracks if the cube is currently rotating.
 shuffleOn = False
 
 # This is where we make the sky.
-win_texture = load_texture('bg1.png')
 sky_texture = load_texture('bg.png')
+win_screen_texture = load_texture('win_screen.png')
 # We Created a big cube that surrounds everything
 sky = Entity(
     model='cube',
     texture=sky_texture,
     scale=8000,   # really big so you never reach the edge
+    double_sided=True
+)
+win_sky = Entity(
+    model='quad',
+    texture=win_screen_texture,
+    scale=(20, 12),
+    position=(0, 0, -15),
+    enabled=False,
+    parent=scene,
     double_sided=True
 )
 
@@ -79,7 +88,6 @@ for a in range(-1, 2):
                 scale=1,
                 position=(a, b, c),
                 color=color.white)
-
 
 # The following code is also among the most important, adding differently colored sides.
 for i in cubes.values():
@@ -147,92 +155,7 @@ for c in cubes.values():
     c.combine()
     c.collider = 'box'
 
-# This part saves a solved version of the cube, needed for the winscreen later. It is used to compare the cube, after every rotation, to it's solved version, to determine if the user has solved the cube.
-solved_state = {}
-for key, cube in cubes.items():
-    solved_state[key] = {
-        'cube_rot': cube.rotation,
-        'planes': [(plane.color, plane.rotation) for plane in cube.children]
-    }
-
-# This part checks if the cube is solved using solved_state, which is defined above
-
-
-def round_rot(rot):
-    return tuple(round(r / 90) * 90 for r in rot)
-
-# round_rot makes the engine overlook .00001 differences when reading the how far the cube is rotated. Engine could make the cube rotate 90.000001 degrees instead of just 90, and this leads to bugs.
-
-
-# Next part shows text later displayed after the user solves the cube
-win_text = Text('YOU DID IT!', scale=8, origin=(
-    0, 0), color=color.gray, enabled=False)
-confetti_entities = []
-
-# These are some effects the user sees after solving the cube
-
-
-def spawn_confetti():
-    for i in range(50):   # number of confetti pieces
-        piece = Entity(
-            model='quad',
-            scale=(1, 1),
-            color=color.random_color(),
-            # start above screen
-            position=(random.uniform(-3, 3), 8, random.uniform(-3, 3)),
-            rotation_z=random.randint(0, 360)
-        )
-        piece.speed = random.uniform(0.5, 1.5)  # fall speed
-        piece.side_speed = random.uniform(-0.02, 0.02)  # drift sideways
-        confetti_entities.append(piece)
-
-
-def update():
-    # move confetti if spawned
-    for piece in confetti_entities:
-        piece.y -= time.dt * piece.speed
-        piece.x += piece.side_speed
-        piece.rotation_z += time.dt * 100
-
-        # remove if below screen
-        if piece.y < -10:
-            confetti_entities.remove(piece)
-            destroy(piece)
-
-
-# This part changes the sky enviorment after a win
-def sky_after_win():
-    sky = Entity(
-        model='cube',
-        texture=win_texture,
-        scale=800,
-        double_sided=True
-    )
-
-# This part creates a function to play music after a win
-
-
-def win_music():
-    background_music.pause()
-    win_music = Audio('win.mp3',
-                      loop=False, autoplay=True,)
-    win_music.volume = 0.5
-
-
-# This checks if cube is solved
-
-def is_solved(cubes, solved_state):
-    for key, cube in cubes.items():
-        solved_cube = solved_state[key]
-        if round_rot(cube.rotation) != round_rot(solved_cube['cube_rot']):
-            return False
-        for plane, solved_plane in zip(cube.children, solved_cube['planes']):
-            if plane.color != solved_plane[0] or round_rot(plane.rotation) != round_rot(solved_plane[1]):
-                return False
-    return True
-
-
-# The following function makes the cubes rotate.
+# This function makes the cubes rotate.
 
 
 def rotateCube(direction, axis, point):
@@ -276,9 +199,41 @@ def rotateCube(direction, axis, point):
         else:
             rotationPoint.animate(
                 'rotation_z', rotationPoint.rotation_z - 90, duration=rotateDuration)
-
 # This function finishes the rotation process.
 # It is seperated so the cubes arent uparented before they are supposed to be.
+
+
+def solve_signature(cube):
+    faces = []
+    for plane in cube.children:
+        faces.append((
+            tuple(round(v / 90) * 90 for v in (plane.rotation_x, plane.rotation_y, plane.rotation_z)),
+            plane.color,
+        ))
+    return (
+        tuple(round(v) for v in (cube.x, cube.y, cube.z)),
+        tuple(round(v / 90) * 90 for v in (cube.rotation_x, cube.rotation_y, cube.rotation_z)),
+        tuple(sorted(faces)),
+    )
+
+
+solved_state = {key: solve_signature(cube) for key, cube in cubes.items()}
+
+
+def is_solved():
+    for key, cube in cubes.items():
+        if solve_signature(cube) != solved_state[key]:
+            return False
+    return True
+
+
+def show_win_screen():
+    sky.visible = False
+    win_sky.enabled = True
+    camera_editor.enabled = True
+    camera.position = (0, 0, -25)
+    camera.rotation = (0, 0, 0)
+    camera.zoom = 1.6
 
 
 def finishRotation():
@@ -293,13 +248,8 @@ def finishRotation():
                 cube.rotation_y / 90) * 90, round(cube.rotation_z / 90) * 90)
     rotationPoint.rotation = (0, 0, 0)
 
-    if is_solved(cubes, solved_state):  # checks if the cube is solved after each rotation
-        win_text.enabled = True          # shows the win screen
-        print("Cube Solved")
-        win_music()
-        sky_after_win()
-        spawn_confetti()
-
+    if is_solved():
+        show_win_screen()
 
 # This function scrambles the cube.
 
@@ -399,25 +349,17 @@ def input(key):
 camera_editor = EditorCamera()
 
 
-# This next part contains a few functions and buttons, which, after observing and recording hardships people face when attempting to solve the cube, I decided are a neccesity
 def back_to_cube():
-    camera_editor.position = (0, 0, 0)
+    camera_editor.position = (.5, 0, 0)
     camera_editor.rotation = (0, 0, 0)
 
-# This moves the Editor Cam back to the cube, and should help with zooming out too much or editor cam being loose from cube
+# Moves Editor Cam Back to the Cube
 
 
 def face_top():
     camera_editor.position = (0, 0, 0)
     camera_editor.rotation = (45, 0, 0)
-
-# This Makes the Cam Face the top
-
-
-def face_z():
-    camera_editor.position = (0, 0, 0)
-    camera_editor.rotation = (0, 45, 0)
-# This makes the Cam Face the Z-axis, where holding Z and clicking makes the respective cube column move up
+# This Makes the Cam Face the topp
 
 
 def face_bottom():
@@ -426,7 +368,12 @@ def face_bottom():
 # This Makes the Cam Face the bottom
 
 
-# These are the buttons which execute the above functions
+def face_z_axis():
+    camera_editor.position = (0, 0, 0)
+    camera_editor.rotation = (0, 90, 0)
+# This makes the camera face the Z axis
+
+
 bc = Button(text='Back to Cube', scale=(.2, .1), position=(.2, .4))
 bc.on_click = back_to_cube
 
@@ -437,7 +384,8 @@ fb = Button(text='Face Cube bottom', scale=(.2, .1), position=(.6, .4))
 fb.on_click = face_bottom
 
 fz = Button(text='Face Z-Axis', scale=(.2, .1), position=(.6, .3))
-fz.on_click = face_z
+fz.on_click = face_z_axis
+
 
 app.run()  # This runs the code.
 # We hope you enjoyed learning how this code works, it was a super hard challenge, but was also really fun!
